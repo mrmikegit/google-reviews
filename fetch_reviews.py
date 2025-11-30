@@ -6,6 +6,7 @@ import traceback
 from flask import Flask, render_template, request, redirect, url_for, session
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
+from google.auth.transport.requests import AuthorizedSession
 from googleapiclient.discovery import build
 
 app = Flask(__name__)
@@ -209,13 +210,17 @@ def oauth2callback():
         creds = flow.credentials
         refresh_token = creds.refresh_token
         
-        # Fetch Accounts using Account Management API
-        account_service = build("mybusinessaccountmanagement", "v1", credentials=creds)
+        # Fetch Accounts using Business Information API (via direct HTTP as client lib misses accounts.list)
+        # account_service = build("mybusinessaccountmanagement", "v1", credentials=creds) # User requested to avoid this
         business_service = build("mybusinessbusinessinformation", "v1", credentials=creds)
         
+        authed_session = AuthorizedSession(creds)
+        accounts_response = authed_session.get("https://mybusinessbusinessinformation.googleapis.com/v1/accounts")
+        accounts_response.raise_for_status()
+        accounts_data_json = accounts_response.json()
+        accounts = accounts_data_json.get("accounts", [])
+        
         accounts_data = []
-        accounts_response = account_service.accounts().list().execute()
-        accounts = accounts_response.get("accounts", [])
         
         for account in accounts:
             account_name = account.get("name")

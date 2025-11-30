@@ -1,6 +1,7 @@
 import os
 import json
 from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import AuthorizedSession
 from googleapiclient.discovery import build
 
 # Scopes required for the application
@@ -45,13 +46,15 @@ def main():
 
         # List Accounts and Locations
         print("--- Fetching Accounts and Locations ---")
-        account_service = build("mybusinessaccountmanagement", "v1", credentials=creds)
+        # account_service = build("mybusinessaccountmanagement", "v1", credentials=creds)
         business_service = build("mybusinessbusinessinformation", "v1", credentials=creds)
 
-        # List Accounts
-        accounts_request = account_service.accounts().list()
-        accounts_response = accounts_request.execute()
-        accounts = accounts_response.get("accounts", [])
+        # List Accounts via direct HTTP
+        authed_session = AuthorizedSession(creds)
+        accounts_response = authed_session.get("https://mybusinessbusinessinformation.googleapis.com/v1/accounts")
+        accounts_response.raise_for_status()
+        accounts_data = accounts_response.json()
+        accounts = accounts_data.get("accounts", [])
 
         if not accounts:
             print("No accounts found.")
