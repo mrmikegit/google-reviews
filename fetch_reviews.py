@@ -2,6 +2,7 @@ import os
 import json
 import requests
 import sys
+import traceback
 from flask import Flask, render_template, request, redirect, url_for, session
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
@@ -251,7 +252,9 @@ def oauth2callback():
                              client_secret=client_secret)
                              
     except Exception as e:
-        return f"Error during OAuth callback: {e}", 500
+        error_details = traceback.format_exc()
+        print(f"Error during OAuth callback:\n{error_details}")
+        return f"Error during OAuth callback: {e}<br><pre>{error_details}</pre>", 500
 
 if __name__ == "__main__":
     # Fetch reviews once on startup
