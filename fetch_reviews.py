@@ -257,7 +257,9 @@ def oauth2callback():
         return f"Error during OAuth callback: {e}<br><pre>{error_details}</pre>", 500
 
 if __name__ == "__main__":
-    # Fetch reviews once on startup
-    fetch_reviews()
-    # Start Flask server
+    # Start Flask server immediately
+    # Run fetch_reviews in a background thread to avoid blocking container startup
+    import threading
+    threading.Thread(target=fetch_reviews).start()
+    
     app.run(host='0.0.0.0', port=8080)
