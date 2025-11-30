@@ -260,10 +260,15 @@ def oauth2callback():
         error_details = traceback.format_exc()
         print(f"Error during OAuth callback:\n{error_details}")
         
-        # Try to extract more info if it's an HttpError
+        # Try to extract more info if it's an HttpError (googleapiclient)
         if hasattr(e, 'content'):
              print(f"HttpError Content: {e.content}")
              error_details += f"\n\nHttpError Content:\n{e.content}"
+        
+        # Try to extract more info if it's a requests.exceptions.HTTPError
+        if hasattr(e, 'response') and hasattr(e.response, 'text'):
+            print(f"Response Text: {e.response.text}")
+            error_details += f"\n\nResponse Text:\n{e.response.text}"
 
         return f"Error during OAuth callback: {e}<br><pre>{error_details}</pre>", 500
 
